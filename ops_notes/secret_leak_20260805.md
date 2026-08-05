@@ -51,6 +51,31 @@ HQ を git 管理下に置く作業で、`cd C:\Developer\Projects\HQ && ...` �
 4. `.gitignore` に `*.env` / `!*.env.example` / `.venv/` / `.docs_backup/` を追加
 5. `git rm -r --cached` で追跡解除（作業ツリーのファイルは残す）→ `75ac507`
 
+## sys_maintainer 側（同日・より深刻）
+
+`apex` の調査中に、`sys_maintainer` の `.env` と `server/.env` も追跡されていたことが判明した。
+`git ls-files` には出なかった。既にステージ削除済みで index から外れていたため。
+**追跡解除済みでも履歴には残る。`git log --all -- <path>` で確認すること。**
+
+| キー | 用途 | ローテート時の影響 |
+|---|---|---|
+| `PAYLOAD_MASTER_KEY` | ペイロード AES-GCM の master | 既存暗号化物が復号不能。実データ 0 件のため無害 |
+| `AGENT_TOKEN_SIGNING_KEY` | JWT HS256 署名 | access token（1h）のみ失効。refresh は CSPRNG で鍵非依存＝再登録不要 |
+| `PAYLOAD_URL_SIGNING_KEY` | 署名付き URL | 有効期限 5分で自然回復 |
+| `HWID_PEPPER_KEY` | HWID の HMAC pepper | **既存 HWID ハッシュが照合不能**。移行手順が要る |
+| `BOT_SERVICE_AUTH_KEY` | Bot↔API 内部認証 | 両ユニット同時 restart で即時 |
+| `DISCORD_BOT_TOKEN` | sys 側 Bot | 影響なし |
+
+`HWID_PEPPER_KEY` には自動移行経路がある。`routes/register.py` L85-99 が
+HWID 不一致時に `discord_uid` で agent を引き、閾値未満なら新 pepper のハッシュへ更新する。
+つまり **agent 1台につき mismatch カウンタを1消費して自動移行する**。
+今回は登録済みがテスト用2件のみだったため `revoked_at` を立てて無効化し、
+実機は新規登録として入る形にした（カウンタ消費なし）。
+
+影響の小さい順に実行するのが原則。
+`DISCORD_BOT_TOKEN` / `PAYLOAD_URL_SIGNING_KEY` / `BOT_SERVICE_AUTH_KEY` →
+`AGENT_TOKEN_SIGNING_KEY` → `PAYLOAD_MASTER_KEY` → `HWID_PEPPER_KEY`。
+
 ## 未対処
 
 - **履歴に旧実値が残る。** `git filter-repo` での除去が必要。
@@ -61,6 +86,8 @@ HQ を git 管理下に置く作業で、`cd C:\Developer\Projects\HQ && ...` �
 
 - 新規リポジトリは `git init` の直後に `.gitignore` を置く。最低限 `.venv/` `*.env`。
 - 既存リポジトリでは `git ls-files` を定期的に見る。`.gitignore` を信用しない。
+- `git ls-files` は index の現在値しか見ない。**ステージ削除済みの秘密は出てこない。**
+  過去分は `git log --all --diff-filter=A -- '*.env'` で追う。
 - 秘密は VPS 上で直接編集する。値を AI へ渡さない。確認は `grep -c` の件数のみ。
 - `sed` で秘密を入れる場合は `set +o history` で囲む。
 - PowerShell へ渡すコマンドに `&&` を使わない。1行ずつ実行する。
