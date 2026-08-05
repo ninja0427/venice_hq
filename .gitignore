@@ -1,0 +1,15 @@
+# HQ は skills\ と ops_notes\ の2系統のみ追跡する。
+# squad の挙動を直接規定するため、履歴のない編集を許さない。
+#
+# 除外するもの:
+#   connections.json … 接続情報
+#   STOP             … 稼働制御フラグ
+#   inbox / ledger / orders / runner.log / *_session.json … 稼働時生成物
+#
+# 未確定: orders\ を履歴に残すかは判断保留。
+#   監査価値はあるが、squad が毎周回生成するためノイズ化する。
+
+/*
+!/.gitignore
+!/skills/
+!/ops_notes/
