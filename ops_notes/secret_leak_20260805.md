@@ -81,6 +81,17 @@ HWID 不一致時に `discord_uid` で agent を引き、閾値未満なら新 p
 - 新 Discord トークンが会話コンテキストに入ったため、**再 Reset が必要**。
   Discord Developer Portal 上の手作業。ここだけが残っている。
 
+  **保留（2026-08-17 判断）**: 対象 Bot は停止中のため、いま急いで替えない。
+  `systemctl is-active apex-bot` = inactive（is-enabled = enabled）。
+  止まっている間はトークンが使われないので、実害の窓が開いていない。
+
+  **再開する時に、起動より先に Reset すること。** 手順は次の3つ。
+  1. Discord Developer Portal で `EAC_Analyzer#6858` のトークンを Reset
+  2. VPS 上で `vps/systemd/bot.env` を直接編集して新しい値を入れる
+  3. `systemctl start apex-bot`
+
+  新しい値を会話や IDE の選択範囲に載せない。確認は `grep -c` の件数だけ。
+
 ## 再点検（2026-08-16 実測）
 
 履歴の除去は完了していた。上の「未対処」から履歴の項を落とした。
