@@ -20,6 +20,8 @@ categories: [powershell, git, deploy]
 - attribute:report … 索引再構成・レポート整備
 - attribute:deploy … VPS・デプロイ・常駐サービス
 - attribute:api … 外部 API 呼出・認証・レート制限
+- attribute:hermes … Hermes 同梱スキルの参照。categories への申告は不要で、
+  どの案件からでも「詰まった時」に引いてよい唯一の例外行
 
 `always` はカテゴリ名ではなく本体側の固定挙動。案件の申告に依存せず無条件でロードする。
 フロントマターに `always` と書かない。
@@ -45,3 +47,5 @@ categories: [powershell, git, deploy]
 | orders_consumption.md | always | orders は全文転記済み案件配下を探索しない到達不能は報告して打ち切り |
 | subagent_delegation.md | always | 役別ツール許可読取専用役の締め方finish_reason=length 時の継続 |
 | status_and_ledger.md | attribute:report | status.md 9フィールドと state 値台帳へ書けるのは CLI のみ |
+| lessons.md | always | 分隊が踏んだ失敗の集約。周回頭に必読。同じ失敗を繰り返さない。書込は status.md の ## 教訓 経由で CLI が転記 |
+| hermes_catalog.md | attribute:hermes | Hermes 同梱79スキルの目次。分野で引き絶対パスの SKILL.md を READ_FILE。79件中56件はそのまま使える |

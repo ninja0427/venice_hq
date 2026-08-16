@@ -5,8 +5,26 @@
 稼働しているのは VPS 上のファイルである。ローカルの案件配下を修正しただけでは
 本番には一切反映されない。ローカルはあくまで編集用の作業コピーである。
 
-- apex_update_monitor → `/opt/apex_monitor/`
-- sys_maintainer → `/opt/sys_maintainer/`
+転送先は案件ルートではなく、**systemd が実際に読む絶対パス**を書く。
+案件ルート直下に置いてもサービスは読まない。
+
+| ローカル | remote |
+|---|---|
+| `apex_update_monitor\vps\vps_bot.py` | `/opt/apex_monitor/vps/vps_bot.py` |
+| `apex_update_monitor\vps\eac_monitor.py` | `/opt/apex_monitor/vps/eac_monitor.py` |
+| `apex_update_monitor\vps\steam_apis.py` | `/opt/apex_monitor/vps/steam_apis.py` |
+| `apex_update_monitor\vps\pics_service.py` | `/opt/apex_monitor/vps/pics_service.py` |
+| `sys_maintainer\vps_current\src\<file>.py` | `/opt/sys_maintainer/src/<file>.py` |
+
+出典（2026-08-06 実測）:
+
+- `apex-bot` … `WorkingDirectory=/opt/apex_monitor/vps` / `ExecStart=… python -u vps_bot.py`
+- `sys-maintainer-api` … `WorkingDirectory=/opt/sys_maintainer` / `ExecStart=… uvicorn src.api:app`
+- `sys-maintainer-bot` … `WorkingDirectory=/opt/sys_maintainer` / `ExecStart=… python -m src.bot`
+
+> 事故（2026-08-04〜08-06）: apex の転送先を `/opt/apex_monitor/vps_bot.py`（1階層上）と
+> 誤り、本番は 7/7 の旧版のまま約1か月動き続けた。本ファイルの旧記述「→ `/opt/apex_monitor/`」
+> が原因。DEPLOY_FILE の成功は「そのパスへ置けた」だけで、稼働反映を意味しない。
 
 ## 手順
 
@@ -27,6 +45,13 @@
 
 結果は成功・失敗のいずれも機械判定された文字列で返る。自己判断で
 「成功した」と報告してはならない。返却された結果文を必ず読むこと。
+
+**py_compile は構文しか見ない。** `import` 先のモジュールが VPS に無くても
+py_compile は通り、DEPLOY_FILE は成功を返す。起動時に ModuleNotFoundError で落ちる。
+依存モジュールは同じ周回で必ず一緒に転送すること。
+
+> 事故（2026-08-06）: `vps_bot.py` が `import eac_monitor` するのに `eac_monitor.py` が
+> ローカル・VPS の双方から欠落していた。構文チェックは全周回で通り続けていた。
 
 ## 制約
 

@@ -78,9 +78,28 @@ HWID 不一致時に `discord_uid` で agent を引き、閾値未満なら新 p
 
 ## 未対処
 
-- **履歴に旧実値が残る。** `git filter-repo` での除去が必要。
-  トークンはローテーション済みのため緊急度は下がったが、解消していない。
 - 新 Discord トークンが会話コンテキストに入ったため、**再 Reset が必要**。
+  Discord Developer Portal 上の手作業。ここだけが残っている。
+
+## 再点検（2026-08-16 実測）
+
+履歴の除去は完了していた。上の「未対処」から履歴の項を落とした。
+
+| 確認項目 | apex_update_monitor | sys_maintainer | HQ | venice_cli |
+|---|---|---|---|---|
+| `*.env` の追跡 | なし | なし | なし | なし |
+| 履歴に残る `*.env` | なし | なし | なし | なし |
+| `.gitignore` の `*.env` | あり | あり | 白リスト方式で到達不可 | あり |
+| origin と一致 | 一致 | 一致 | — | — |
+
+- `ff51849`（初回コミット）と `75ac507`（追跡解除）はローカルにもリモートにも存在しない。
+  履歴書き換え後に force-push 済みで、`main` は `b4bedee` で origin と一致している。
+- 追跡されている env 系は雛形のみ。`local/.env.example` は `INGEST_TOKEN=your_ingest_token_here`、
+  `alpha.env.example` は `ALPHA_DISCORD_TOKEN=`（空）。実値なし。
+- `check_tokens.sh` は sqlite3 の SELECT 文のみ。値の埋め込みなし。
+- 点検コマンド:
+  `git log --all --pretty=format: --name-only --diff-filter=A | sort -u | grep -E '\.env$'`
+  ※ `git ls-files` だけでは足りない。理由は上の「再発防止」を見ること。
 
 ## 再発防止
 

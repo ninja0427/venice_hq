@@ -12,8 +12,13 @@
 ## 対応表
 | 分隊 | LEAD | 編成 | 担当案件 |
 |---|---|---|---|
-| ALPHA | zai-org-glm-5-2 | T-maint | sys_maintainer_v2 |
-| BRAVO | grok-4-5 | T-watch | apex_update_monitor |
+| ALPHA | zai-org-glm-5-2 | T-maint | apex_update_monitor |
+| BRAVO | zai-org-glm-5-2 | T-watch | sys_maintainer |
+
+出典は `Scripts\venice_cli\models.json` の `assignments` / `squads`。
+`_report\status.md` の `squad` 行は分隊の自己申告なので根拠に使わない。
+`sys_maintainer_v2` は案件ではない。`sys_maintainer` の本番用ファイル置き場
+（`models.json` の `non_projects`）。分隊を割り当てない。
 
 ## 通信路規約
 - 下り: CHIEF が orders\<案件>\ に指示を書く  分隊が起動時に自分宛を読む（読取のみ）
